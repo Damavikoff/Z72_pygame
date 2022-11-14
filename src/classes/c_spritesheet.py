@@ -68,7 +68,6 @@ class SpriteSheet(Sprite):
     if self.is_completed: return
     self.tick += self.speed / FPS
     index = int(self.tick % self.frame_count)
-    # self.index = 5
     if index != self.index:
       self.index = index
       self.set_frame(self.index)

@@ -5,8 +5,8 @@ from src.defaults import FPS, DEF_WIN_H, DEF_WIN_W, DEF_WIN_SCALE, DIR_ASSETS
 from src.classes.c_game import Game
 import os
 
-DEF_WIN_W = 1200
-DEF_WIN_H = 400
+DEF_WIN_W = 960
+DEF_WIN_H = 600
 
 def get_files(d: str) -> list[str]:
   return [f'{d}/{f}' for f in os.listdir(d) if os.path.isfile(os.path.join(d, f))]
@@ -16,8 +16,8 @@ class Application:
     pygame.init()
     pygame.font.init()
     self.clock = pygame.time.Clock()
-    self.screen = self.set_window_size(DEF_WIN_SCALE)
-    # self.screen = pygame.display.set_mode((DEF_WIN_W, DEF_WIN_H))
+    # self.screen = self.set_window_size(DEF_WIN_SCALE)
+    self.screen = pygame.display.set_mode((DEF_WIN_W, DEF_WIN_H))
     self.game = Game(self.screen.get_size())
 
   def set_window_size(self, scale: float) -> Surface:

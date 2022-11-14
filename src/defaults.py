@@ -9,6 +9,9 @@ DEF_WIN_SCALE = .6
 
 DIR_ASSETS = os.path.abspath('src/assets')
 
+LEFT = 1
+RIGHT = 2
+
 ACT_ATTACK = 1
 ACT_JUMP = 2
 ACT_RUN_RIGHT = 3
@@ -24,6 +27,15 @@ IDLE = 7
 JUMP = 8
 RUN = 9
 
+SCENE_SIZE = (288, 160)
+
+SCENE_IMAGES= [
+  join(DIR_ASSETS, 'scene', 'background_0.png'),
+  join(DIR_ASSETS, 'scene', 'background_1.png'),
+  join(DIR_ASSETS, 'scene', 'background_2.png'),
+  join(DIR_ASSETS, 'scene', 'background_3.png'),
+]
+
 FRAMES_WARRIOR_1 = {
   ATTACK_1: join(DIR_ASSETS, 'warrior_1', 'Attack1.png'),
   ATTACK_2: join(DIR_ASSETS, 'warrior_1', 'Attack2.png'),
@@ -36,14 +48,17 @@ FRAMES_WARRIOR_1 = {
   RUN: join(DIR_ASSETS, 'warrior_1', 'Run.png')
 }
 
-SCENE_SIZE = (288, 160)
-
-SCENE_IMAGES= [
-  join(DIR_ASSETS, 'scene', 'background_0.png'),
-  join(DIR_ASSETS, 'scene', 'background_1.png'),
-  join(DIR_ASSETS, 'scene', 'background_2.png'),
-  join(DIR_ASSETS, 'scene', 'background_3.png'),
-]
+FRAMES_WARRIOR_2 = {
+  ATTACK_1: join(DIR_ASSETS, 'warrior_2', 'Attack1.png'),
+  ATTACK_2: join(DIR_ASSETS, 'warrior_2', 'Attack2.png'),
+  ATTACK_3: join(DIR_ASSETS, 'warrior_2', 'Attack3.png'),
+  DEATH: join(DIR_ASSETS, 'warrior_2', 'Death.png'),
+  FALL: join(DIR_ASSETS, 'warrior_2', 'Fall.png'),
+  GET_HIT: join(DIR_ASSETS, 'warrior_2', 'Get_Hit.png'),
+  IDLE: join(DIR_ASSETS, 'warrior_2', 'Idle.png'),
+  JUMP: join(DIR_ASSETS, 'warrior_2', 'Jump.png'),
+  RUN: join(DIR_ASSETS, 'warrior_2', 'Run.png')
+}
 
 HITBOX_B_WARRIOR_1 = {
   ATTACK_1: [
@@ -77,6 +92,37 @@ HITBOX_B_WARRIOR_1 = {
   ],
 }
 
+HITBOX_B_WARRIOR_2 = {
+  ATTACK_1: [
+    (23, 44, 72, 62), (30, 42, 82, 62), (30, 42, 82, 62), (30, 42, 82, 62), (30, 42, 63, 62), (30, 42, 63, 62), (30, 42, 62, 62)
+  ],
+  ATTACK_2: [
+    (22, 39, 64, 62), (24, 39, 62, 62), (22, 42, 84, 62), (22, 42, 82, 62), (22, 42, 82, 62), (22, 42, 82, 62), (22, 42, 83, 62)
+  ],
+  ATTACK_3: [
+    (22, 42, 83, 62), (22, 42, 83, 62), (22, 42, 84, 62), (22, 40, 84, 62), (24, 30, 61, 62), (18, 30, 62, 62), (18, 32, 62, 62), (18, 33, 63, 62)
+  ],
+  DEATH: [
+    (18, 39, 75, 62), (18, 42, 73, 62), (16, 42, 73, 62), (16, 41, 68, 62), (26, 22, 52, 62), (26, 6, 36, 62), (26, 4, 37, 62)
+  ],
+  FALL: [
+    (16, 40, 72, 62), (16, 40, 72, 62), (15, 40, 72, 62)
+  ],
+  GET_HIT: [
+     (17, 40, 77, 62), (17, 40, 77, 62), (17, 40, 75, 62)
+  ],
+  IDLE: [
+    (16, 44, 73, 62), (16, 43, 73, 62), (16, 43, 73, 62), (15, 41, 73, 62), (15, 42, 73, 62),
+    (16, 42, 73, 62), (16, 43, 73, 62), (16, 43, 73, 62), (16, 44, 73, 62), (16, 44, 73, 62)
+  ],
+  JUMP: [
+    (17, 40, 70, 62), (17, 40, 70, 62), (17, 40, 70, 62)
+  ],
+  RUN: [
+    (17, 40, 69, 62), (22, 37, 69, 62), (19, 36, 69, 62), (19, 39, 68, 62), (19, 40, 68, 62), (19, 39, 68, 62), (19, 37, 68, 62), (19, 38, 68, 62)
+  ],
+}
+
 WARRIOR_1 = {
   ATTACK_1: (FRAMES_WARRIOR_1[ATTACK_1], HITBOX_B_WARRIOR_1[ATTACK_1]),
   ATTACK_2: (FRAMES_WARRIOR_1[ATTACK_2], HITBOX_B_WARRIOR_1[ATTACK_2]),
@@ -87,4 +133,16 @@ WARRIOR_1 = {
   IDLE: (FRAMES_WARRIOR_1[IDLE], HITBOX_B_WARRIOR_1[IDLE]),
   JUMP: (FRAMES_WARRIOR_1[JUMP], HITBOX_B_WARRIOR_1[JUMP]),
   RUN: (FRAMES_WARRIOR_1[RUN], HITBOX_B_WARRIOR_1[RUN])
+}
+
+WARRIOR_2 = {
+  ATTACK_1: (FRAMES_WARRIOR_2[ATTACK_1], HITBOX_B_WARRIOR_2[ATTACK_1]),
+  ATTACK_2: (FRAMES_WARRIOR_2[ATTACK_2], HITBOX_B_WARRIOR_2[ATTACK_2]),
+  ATTACK_3: (FRAMES_WARRIOR_2[ATTACK_3], HITBOX_B_WARRIOR_2[ATTACK_3]),
+  DEATH: (FRAMES_WARRIOR_2[DEATH], HITBOX_B_WARRIOR_2[DEATH]),
+  FALL: (FRAMES_WARRIOR_2[FALL], HITBOX_B_WARRIOR_2[FALL]),
+  GET_HIT: (FRAMES_WARRIOR_2[GET_HIT], HITBOX_B_WARRIOR_2[GET_HIT]),
+  IDLE: (FRAMES_WARRIOR_2[IDLE], HITBOX_B_WARRIOR_2[IDLE]),
+  JUMP: (FRAMES_WARRIOR_2[JUMP], HITBOX_B_WARRIOR_2[JUMP]),
+  RUN: (FRAMES_WARRIOR_2[RUN], HITBOX_B_WARRIOR_2[RUN])
 }

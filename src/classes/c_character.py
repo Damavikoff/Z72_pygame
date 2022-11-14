@@ -4,11 +4,8 @@ from pygame.rect import Rect
 from pygame.surface import Surface
 from .c_spritesheet import SpriteSheet
 from .c_hitbox import Hitbox
-from ..defaults import WARRIOR_1, FPS
-from ..defaults import ATTACK_1, ATTACK_2, ATTACK_3, DEATH, FALL, GET_HIT, IDLE, JUMP, RUN, ACT_ATTACK, ACT_JUMP, ACT_RUN_LEFT, ACT_RUN_RIGHT
-
-LEFT = 1
-RIGHT = 2
+from ..defaults import WARRIOR_1, WARRIOR_2, FPS
+from ..defaults import ATTACK_1, ATTACK_2, ATTACK_3, DEATH, FALL, GET_HIT, IDLE, JUMP, RUN, ACT_ATTACK, ACT_JUMP, ACT_RUN_LEFT, ACT_RUN_RIGHT, LEFT, RIGHT
 
 class Character(Sprite):
 
@@ -20,12 +17,16 @@ class Character(Sprite):
     self.side = RIGHT
     self.scale = scale
     self.fit_box = [0, 0, 48, 0]
-    self.size = (135, 135)
     self.init_pos = (0, 0) if not position else position
     self.position = [v for v in self.init_pos]
     self.show_hitboxes = False
     self.controls = {} if controls is None else controls
-    self.speed = 300
+    self.speed = 390
+    self.sprites = {}
+    self.movement = {
+      LEFT: True,
+      RIGHT: True
+    }
     # self.active_sprite = self.sprites[0]
     # self.image = self.active_sprite.image
     # self.rect = self.image.get_rect()
@@ -58,29 +59,9 @@ class Character(Sprite):
   def sprite_ground(self) -> float:
     return (self.size[1] - self.fit_box[2]) * self.scale
 
-  def update(self) -> None:
-    self.active_sprite.update()
-
-class CharWarrior(Character):
-  def __init__(self, scale = 1, controls: dict = None, position: tuple[float] = None) -> None:
-    super().__init__(None, scale, controls, position)
-    self.sprites = {
-      ATTACK_1: SpriteSheet(WARRIOR_1[ATTACK_1][0], self.size, WARRIOR_1[ATTACK_1][1], scale, 11),
-      ATTACK_2: SpriteSheet(WARRIOR_1[ATTACK_2][0], self.size, WARRIOR_1[ATTACK_2][1], scale, 11),
-      ATTACK_3: SpriteSheet(WARRIOR_1[ATTACK_3][0], self.size, WARRIOR_1[ATTACK_3][1], scale, 11),
-      DEATH: SpriteSheet(WARRIOR_1[DEATH][0], self.size, WARRIOR_1[DEATH][1], scale, 11),
-      FALL: SpriteSheet(WARRIOR_1[FALL][0], self.size, WARRIOR_1[FALL][1], scale, 11),
-      GET_HIT: SpriteSheet(WARRIOR_1[GET_HIT][0], self.size, WARRIOR_1[GET_HIT][1], scale, 11),
-      IDLE: SpriteSheet(WARRIOR_1[IDLE][0], self.size, WARRIOR_1[IDLE][1], scale, 11),
-      JUMP: SpriteSheet(WARRIOR_1[JUMP][0], self.size, WARRIOR_1[JUMP][1], scale, 11),
-      RUN: SpriteSheet(WARRIOR_1[RUN][0], self.size, WARRIOR_1[RUN][1], scale, 11)
-    }
-    self.sprites[RUN].is_looped = True
-    self.fit_box = [0, 52, 48, 55]
-    self.set_fit_rect()
 
   def update(self) -> None:
-    if not self.action: self.action = IDLE
+    if not self.action or (self.action == RUN and not self.movement[self.side]): self.action = IDLE
     if self.action == RUN:
       self.move()
     self.set_pos()
@@ -104,8 +85,9 @@ class CharWarrior(Character):
     pygame.draw.rect(self.active_sprite.image, (0, 255, 255), self.fit_rect, 1)
 
   def move(self) -> None:
+    if not self.movement[self.side]: return
     pos = self.position[0]
-    self.position[0] = pos + self.speed * (1 if self.side == RIGHT else -1) / FPS
+    self.position[0] = pos + int(self.speed * (1 if self.side == RIGHT else -1) / FPS)
 
   def set_pos(self) -> None:
     if not self.active_sprite: return
@@ -118,8 +100,8 @@ class CharWarrior(Character):
     p_t, p_r, p_b, p_l = fit_scaled
     w, h = self.scaled_size
     rect = Rect(0, 0, w - p_r - p_l, h - p_t - p_b)
+    rect.center = self.rect.center
     rect.top = p_t
-    rect.left = p_r if self.side == LEFT else p_l
     self.fit_rect = rect
 
   def set_action(self, action) -> None:
@@ -139,11 +121,9 @@ class CharWarrior(Character):
 
   def run(self, dir) -> None:
     self.side = dir
-    if self.is_attacking:
-      self.set_action(RUN)
-    else:
-      self.action = RUN
-      self.active_sprite.reset()
+    if self.is_attacking or not self.movement[self.side]: return
+    self.action = RUN
+    self.active_sprite.reset()
 
   def handle_control(self, control, disable = False) -> None:
     if control not in self.controls: return
@@ -156,3 +136,46 @@ class CharWarrior(Character):
       self.attack()
     elif action in [ACT_RUN_LEFT, ACT_RUN_RIGHT]:
       self.run(LEFT if action == ACT_RUN_LEFT else RIGHT)
+
+#######################################################################################
+
+class CharWarrior(Character):
+  def __init__(self, scale = 1, controls: dict = None, position: tuple[float] = None) -> None:
+    super().__init__(None, scale, controls, position)
+    self.size = (135, 135)
+    self.sprites = {
+      ATTACK_1: SpriteSheet(WARRIOR_1[ATTACK_1][0], self.size, WARRIOR_1[ATTACK_1][1], scale, 10),
+      ATTACK_2: SpriteSheet(WARRIOR_1[ATTACK_2][0], self.size, WARRIOR_1[ATTACK_2][1], scale, 10),
+      ATTACK_3: SpriteSheet(WARRIOR_1[ATTACK_3][0], self.size, WARRIOR_1[ATTACK_3][1], scale, 10),
+      DEATH: SpriteSheet(WARRIOR_1[DEATH][0], self.size, WARRIOR_1[DEATH][1], scale, 11),
+      FALL: SpriteSheet(WARRIOR_1[FALL][0], self.size, WARRIOR_1[FALL][1], scale, 11),
+      GET_HIT: SpriteSheet(WARRIOR_1[GET_HIT][0], self.size, WARRIOR_1[GET_HIT][1], scale, 11),
+      IDLE: SpriteSheet(WARRIOR_1[IDLE][0], self.size, WARRIOR_1[IDLE][1], scale, 11),
+      JUMP: SpriteSheet(WARRIOR_1[JUMP][0], self.size, WARRIOR_1[JUMP][1], scale, 11),
+      RUN: SpriteSheet(WARRIOR_1[RUN][0], self.size, WARRIOR_1[RUN][1], scale, 11)
+    }
+    self.sprites[RUN].is_looped = True
+    self.fit_box = [0, 52, 48, 55]
+    self.set_fit_rect()
+
+
+class CharLord(Character):
+  def __init__(self, scale = 1, controls: dict = None, position: tuple[float] = None) -> None:
+    super().__init__(None, scale, controls, position)
+    self.size = (162, 162)
+    self.sprites = {
+      ATTACK_1: SpriteSheet(WARRIOR_2[ATTACK_1][0], self.size, WARRIOR_2[ATTACK_1][1], scale, 10),
+      ATTACK_2: SpriteSheet(WARRIOR_2[ATTACK_2][0], self.size, WARRIOR_2[ATTACK_2][1], scale, 10),
+      ATTACK_3: SpriteSheet(WARRIOR_2[ATTACK_3][0], self.size, WARRIOR_2[ATTACK_3][1], scale, 10),
+      DEATH: SpriteSheet(WARRIOR_2[DEATH][0], self.size, WARRIOR_2[DEATH][1], scale, 11),
+      FALL: SpriteSheet(WARRIOR_2[FALL][0], self.size, WARRIOR_2[FALL][1], scale, 11),
+      GET_HIT: SpriteSheet(WARRIOR_2[GET_HIT][0], self.size, WARRIOR_2[GET_HIT][1], scale, 11),
+      IDLE: SpriteSheet(WARRIOR_2[IDLE][0], self.size, WARRIOR_2[IDLE][1], scale, 11),
+      JUMP: SpriteSheet(WARRIOR_2[JUMP][0], self.size, WARRIOR_2[JUMP][1], scale, 11),
+      RUN: SpriteSheet(WARRIOR_2[RUN][0], self.size, WARRIOR_2[RUN][1], scale, 11)
+    }
+    self.side = LEFT
+    self.sprites[RUN].is_looped = True
+    self.fit_box = [0, 68, 62, 68]
+    self.set_fit_rect()
+  
