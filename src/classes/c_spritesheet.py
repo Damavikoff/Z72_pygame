@@ -11,9 +11,13 @@ class SpriteSheet(Sprite):
   def __init__(self, path: str,
                      size: tuple[int],
                      hitbox_b: list[int] = None,
-                     scale = 1, speed = 1,
+                     hitbox_a: list[int] = None,
+                     scale = 1,
+                     speed = 1,
+                     is_looped = False,
                      is_left = True) -> None:
     super().__init__()
+    h_a = hitbox_a if hitbox_a else []
     h_b = hitbox_b if hitbox_b else []
     self.spritesheet = load(path).convert_alpha()
     self.size = size
@@ -23,13 +27,13 @@ class SpriteSheet(Sprite):
     self.tick = 0
     self.index = 0
     self.is_completed = False
-    self.is_looped = False
+    self.is_looped = is_looped
     self.last_index = None
     self.frames = self.get_frames()
     self.image = Surface([v * self.scale for v in self.size], pygame.SRCALPHA, 32).convert_alpha()
     self.rect = self.image.get_rect()
     self.hitbox_body = self.get_hitbox(h_b)
-    self.hitbox_weapon = []
+    self.hitbox_weapon = self.get_hitbox(h_a)
     self.set_frame()
 
   def get_hitbox(self, hitboxes: list[tuple[int]]) -> list[Hitbox]:
@@ -52,30 +56,37 @@ class SpriteSheet(Sprite):
 
   def set_frame(self, index = 0) -> None:
     if self.last_index == index: return
+    self.index = index
     self.image.fill((0, 0, 0, 0))
-    self.image.blit(scale(self.frames[self.index], [v * self.scale for v in self.size]), (0, 0))
+    self.image.blit(scale(self.frames[index], [v * self.scale for v in self.size]), (0, 0))
     self.last_index = index
+    if self.hitbox_a:
+      self.hitbox_a.detected = False
 
   @property
   def frame_count(self) -> int:
     return int(self.spritesheet.get_width() / self.size[0])
 
   @property
-  def hitbox_b(self) -> Rect:
+  def hitbox_b(self) -> Hitbox:
     return self.hitbox_body[self.index] if len(self.hitbox_body) > self.index else None
+
+  @property
+  def hitbox_a(self) -> Hitbox:
+    return self.hitbox_weapon[self.index] if len(self.hitbox_weapon) > self.index else None
 
   def update(self) -> None:
     if self.is_completed: return
     self.tick += self.speed / FPS
     index = int(self.tick % self.frame_count)
-    if index != self.index:
-      self.index = index
-      self.set_frame(self.index)
     if self.tick >= self.frame_count and not self.is_looped:
       self.is_completed = True
+    elif index != self.index:
+      self.set_frame(index)
 
   def reset(self) -> None:
     self.tick = 0
     self.index = 0
+    self.set_frame(0)
     self.is_completed = False
   
