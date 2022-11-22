@@ -16,9 +16,12 @@ class HealthBar(Sprite):
     t, r, b, l = self.paddings
     self.image = Surface((w + r + l, h + t + b), pygame.SRCALPHA, 32).convert_alpha()
     self.rect = self.image.get_rect()
-    self.bar_speed = 150
+    self.bar_speed = 600
     self.side = side
     self.render()
+
+  def remove_points(self, amount: float) -> None:
+    self.act_val = max(0, self.act_val - amount)
 
 
   def update(self) -> None:
@@ -34,6 +37,7 @@ class HealthBar(Sprite):
     self.image.fill((0, 0, 0, 0))
     t, r, b, l = self.paddings
     w, h = self.inner_size
+    self.cur_val = max(self.act_val, self.cur_val - self.bar_speed / FPS)
     width = w * self.cur_val / self.max_val
     surface = Surface((width, h))
     surface.fill(self.color)
@@ -41,7 +45,6 @@ class HealthBar(Sprite):
     rect.top = t
     rect.left = w - width + l if self.side == RIGHT else l
     self.image.blit(surface, rect)
-    self.cur_val = max(self.act_val, self.cur_val - self.bar_speed / FPS)
     pygame.draw.line(self.image, WHITESMOKE, (0, t), (self.rect.w, t))
     pygame.draw.line(self.image, WHITESMOKE, (0, self.rect.h - b), (self.rect.w, self.rect.h - b))
     pygame.draw.line(self.image, WHITESMOKE, (l, 0), (l, self.rect.h))

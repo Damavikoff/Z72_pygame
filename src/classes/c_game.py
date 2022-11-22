@@ -1,9 +1,10 @@
 import pygame
 from pygame.sprite import Group
 from pygame.surface import Surface
-from .c_character import CharLord, CharWarrior
+from .c_character import CharLord, CharWarrior, Character
 from .c_scene import Scene
-from ..defaults import ACT_ATTACK, ACT_JUMP, ACT_RUN_LEFT, ACT_RUN_RIGHT, SCENE_IMAGES, DEF_WIN_W, LEFT, RIGHT
+from .c_text import Text
+from ..defaults import ACT_ATTACK, ACT_JUMP, ACT_RUN_LEFT, ACT_RUN_RIGHT, ATTACK_1, ATTACK_2, SCENE_IMAGES, DEF_WIN_W, LEFT, RIGHT
 
 CONTROLS_1 = {
   pygame.K_a: ACT_RUN_LEFT,
@@ -19,6 +20,16 @@ CONTROLS_2 = {
   pygame.K_UP: ACT_JUMP
 }
 
+
+MSG_GAME_OVER = """
+        GAME OVER
+Would you like to continue?
+
+   YES              NO
+ [ENTER]         [ESCAPE]
+"""
+
+
 class Game:
   def __init__(self, size: tuple[int]) -> None:
       super().__init__()
@@ -33,12 +44,22 @@ class Game:
       self.characters.add(self.char1, self.char2)
       self.surface = Surface(size)
       self.width = self.surface.get_width()
+      self.caption: Text | None = None
+      self.is_paused = False
+      self.is_network = False
+      self.can_proceed = True
+      self.is_host = False
+      self.remote_client = None
 
   def draw(self, target: Surface) -> None:
-    # self.surface.fill((60, 60, 60))
+    self.surface.fill((60, 60, 60))
     self.surface.blit(self.scene.image, (0, 0))
     self.characters.draw(self.surface)
     self.ui.draw(self.surface)
+    if self.caption:
+      rect = self.caption.get_rect()
+      rect.center = self.surface.get_rect().center
+      self.surface.blit(self.caption, rect)
     target.blit(self.surface, (0, 0))
 
   def update(self) -> None:
@@ -46,6 +67,9 @@ class Game:
     self.scene.update()
     self.characters.update()
     self.check_hit()
+    if self.is_someone_dead and not self.caption:
+      self.set_caption(MSG_GAME_OVER)
+      self.can_proceed = False
 
   def set_movement(self) -> None:
     r1 = self.char1.fit_rect
@@ -60,22 +84,33 @@ class Game:
     self.char2.movement[RIGHT] = dx2 < self.width and dx2 > dx1 or dx2 < x1
 
   def check_hit(self) -> None:
-    h1_a, h1_b = self.char1.hitboxes
-    h2_a, h2_b = self.char2.hitboxes
-    if h1_a and h1_a.colliderect(h2_b):
-      print(h1_a, h1_a.topleft, h2_b, h2_b.topleft)
+    chars:list[Character] = [*self.characters.sprites()]
+    for c in chars:
+      if c.is_attacking:
+        c.check_hit([v for v in chars if v != c])
+
+  def set_caption(self, text: str, size: int = 28, alignment = 0) -> None:
+    color = (200, 144, 25)
+    self.caption = Text(text = text, size = size, color = color, alignment = alignment, paddings = (20, 0, 20, 0))
+    w, h = self.caption.get_size()
+    pygame.draw.line(self.caption, color, (0, 1), (w, 1))
+    pygame.draw.line(self.caption, color, (0, h - 1), (w, h - 1))
 
   def handle_keydown(self, key) -> None:
-    if key == pygame.K_q:
-      self.char1.health_bar.act_val = 20
-      print(self.char1.health_bar.act_val)
+    if not self.can_proceed: return
     if key in CONTROLS_1:
       self.char1.handle_control(key)
     if key in CONTROLS_2:
       self.char2.handle_control(key)
   
   def handle_keyup(self, key) -> None:
+    if not self.can_proceed: return
     if key in CONTROLS_1:
       self.char1.handle_control(key, True)
     if key in CONTROLS_2:
       self.char2.handle_control(key, True)
+
+  @property
+  def is_someone_dead(self) -> bool:
+    chars: list[Character] = self.characters.sprites()
+    return next((v for v in chars if not v.is_alive), False)

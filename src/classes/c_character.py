@@ -1,3 +1,4 @@
+from time import time
 import pygame
 from math import sqrt
 from pygame.sprite import Sprite
@@ -17,12 +18,14 @@ class Character(Sprite):
     self.sprites = sprites if sprites else {}
     self.action_list = []
     self.action_queue = []
+    self.health = 500
+    self.damage = 20
     self.action = IDLE
     self.side = RIGHT
     self.scale = scale
     self.fit_box = [0, 0, 48, 0]
     self.init_pos = (0, 0) if not position else position
-    self.position = [v for v in self.init_pos]
+    self.position = [*self.init_pos]
     self.ground = 0
     self.show_hitboxes = True
     self.controls = {} if controls is None else controls
@@ -34,6 +37,10 @@ class Character(Sprite):
       LEFT: True,
       RIGHT: True
     }
+
+  @property
+  def is_alive(self) -> bool:
+    return self.health_bar.act_val > 0
 
   @property
   def active_sprite(self) -> SpriteSheet:
@@ -76,7 +83,18 @@ class Character(Sprite):
 
   @property
   def hitboxes(self) -> tuple[Hitbox]:
-    return (self.active_sprite.hitbox_a, self.active_sprite.hitbox_b)
+    h_b = self.get_real_hitbox(self.active_sprite.hitbox_b)
+    h_a = self.get_real_hitbox(self.active_sprite.hitbox_a) if self.active_sprite.hitbox_a else None
+    return (h_a, h_b)
+
+  def get_real_hitbox(self, hitbox: Hitbox) -> Rect:
+    h_x = hitbox.copy()
+    if (self.side == RIGHT):
+      h_x.left = self.rect.left + h_x.left
+    else:
+      h_x.left = self.rect.right - h_x.right
+    h_x.top = self.rect.top + h_x.top
+    return h_x
 
   def set_static(self, action, frame) -> None:
     self.action = action
@@ -88,7 +106,6 @@ class Character(Sprite):
     if len(self.action_queue):
       self.set_action_sprite(self.action_queue[0])
       self.action_queue = [v for v in self.action_queue if v != self.action]
-      self.set_action_sprite(self.action)
     else:
       self.set_action_sprite(RUN if self.is_moving and self.movement[self.side] else IDLE)
 
@@ -104,6 +121,7 @@ class Character(Sprite):
     # self.render_hitboxes()
     # return
     self.health_bar.update()
+    if not self.is_alive and self.active_sprite.is_completed: return
     if not self.action:
       self.set_action_sprite(RUN if self.is_moving and self.movement[self.side] else IDLE)
     elif self.action == RUN and not self.movement[self.side]:
@@ -189,6 +207,7 @@ class Character(Sprite):
     self.set_action_sprite(JUMP)
 
   def handle_control(self, control, disable = False) -> None:
+    if not self.is_alive: return
     if control not in self.controls: return
     action = self.controls[control]
     if disable:
@@ -204,12 +223,24 @@ class Character(Sprite):
     elif action == ACT_JUMP:
       self.jump()
 
+  def check_hit(self, chars: list['Character']) -> None:
+    if not self.is_attacking or not self.active_sprite.hitbox_a: return
+    h_a = self.hitboxes[0]
+    for c in chars:
+      h_b = c.hitboxes[1]
+      if (h_a.colliderect(h_b) and not self.active_sprite.detected) and c.is_alive:
+        c.health_bar.remove_points(self.damage)
+        self.active_sprite.detected = True
+        if not c.is_alive:
+          c.action = DEATH
+
 #######################################################################################
 
 class CharWarrior(Character):
   def __init__(self, scale = 1, controls: dict = None, position: tuple[float] = None) -> None:
     super().__init__(None, scale, controls, position)
     self.size = (135, 135)
+    self.damage = 20
     self.sprites = {
       ATTACK_1: SpriteSheet(WARRIOR_1[ATTACK_1][0], self.size, WARRIOR_1[ATTACK_1][1], WARRIOR_1[ATTACK_1][2], scale, 10),
       ATTACK_2: SpriteSheet(WARRIOR_1[ATTACK_2][0], self.size, WARRIOR_1[ATTACK_2][1], WARRIOR_1[ATTACK_2][2], scale, 10),
@@ -219,9 +250,9 @@ class CharWarrior(Character):
       GET_HIT: SpriteSheet(WARRIOR_1[GET_HIT][0], self.size, WARRIOR_1[GET_HIT][1], None, scale, 11),
       IDLE: SpriteSheet(WARRIOR_1[IDLE][0], self.size, WARRIOR_1[IDLE][1], None, scale, 11, True),
       JUMP: SpriteSheet(WARRIOR_1[JUMP][0], self.size, WARRIOR_1[JUMP][1], None, scale, 11, True),
-      RUN: SpriteSheet(WARRIOR_1[RUN][0], self.size, WARRIOR_1[RUN][1], None, scale, 10, True)
+      RUN: SpriteSheet(WARRIOR_1[RUN][0], self.size, WARRIOR_1[RUN][1], None, scale, 11, True)
     }
-    self.health_bar = HealthBar(color = (204, 44, 55))
+    self.health_bar = HealthBar(color = (204, 44, 55), max_val = self.health)
     self.fit_box = [0, 52, 48, 55]
     self.set_fit_rect()
 
@@ -230,6 +261,7 @@ class CharLord(Character):
   def __init__(self, scale = 1, controls: dict = None, position: tuple[float] = None) -> None:
     super().__init__(None, scale, controls, position)
     self.size = (162, 162)
+    self.damage = 30
     self.sprites = {
       ATTACK_1: SpriteSheet(WARRIOR_2[ATTACK_1][0], self.size, WARRIOR_2[ATTACK_1][1], WARRIOR_2[ATTACK_1][2], scale, 10),
       ATTACK_2: SpriteSheet(WARRIOR_2[ATTACK_2][0], self.size, WARRIOR_2[ATTACK_2][1], WARRIOR_2[ATTACK_2][2], scale, 10),
@@ -242,7 +274,7 @@ class CharLord(Character):
       RUN: SpriteSheet(WARRIOR_2[RUN][0], self.size, WARRIOR_2[RUN][1], None, scale, 11, True)
     }
     self.side = LEFT
-    self.health_bar = HealthBar(color = (77, 164, 126), side = RIGHT)
+    self.health_bar = HealthBar(color = (77, 164, 126), max_val = self.health, side = RIGHT)
     self.fit_box = [0, 68, 62, 68]
     self.set_fit_rect()
   

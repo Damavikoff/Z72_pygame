@@ -1,3 +1,4 @@
+from time import time
 import pygame
 from pygame.rect import Rect
 from pygame.image import load
@@ -20,6 +21,7 @@ class SpriteSheet(Sprite):
     h_a = hitbox_a if hitbox_a else []
     h_b = hitbox_b if hitbox_b else []
     self.spritesheet = load(path).convert_alpha()
+    self.detected = False
     self.size = size
     self.scale = scale
     self.speed = speed
@@ -60,8 +62,6 @@ class SpriteSheet(Sprite):
     self.image.fill((0, 0, 0, 0))
     self.image.blit(scale(self.frames[index], [v * self.scale for v in self.size]), (0, 0))
     self.last_index = index
-    if self.hitbox_a:
-      self.hitbox_a.detected = False
 
   @property
   def frame_count(self) -> int:
@@ -89,4 +89,6 @@ class SpriteSheet(Sprite):
     self.index = 0
     self.set_frame(0)
     self.is_completed = False
+    if self.hitbox_a:
+      self.detected = False
   
