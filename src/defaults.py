@@ -3,6 +3,9 @@ from os.path import join
 
 FPS = 60
 
+HOST = '127.0.0.1'
+PORT = 50007
+
 WHITESMOKE = (245, 245, 245, 255)
 
 DEF_WIN_W = 900
