@@ -34,6 +34,67 @@ RUN = 9
 
 SCENE_SIZE = (288, 160)
 
+ICON = join(DIR_ASSETS, 'icon.ico')
+
+CLIENT = 1
+SERVER = 2
+CONNECTING = 3
+CLIENT_AWAIT = 4
+
+ONLINE = 1
+OFFLINE = 2
+
+M_GAME_OVER = 1
+M_CONNECTION_ERROR = 2
+M_MODE = 3
+M_CONNECTING = 4,
+M_CLENT_AWAIT = 5,
+M_CONNECTION_FAILED = 6
+
+ALIGN_LEFT = 0
+ALIGN_CENTER = 1
+ALIGN_RIGHT = 2
+
+M_LIST = {
+    M_MODE: """
+Select game mode.
+
+1. OFFLINE
+2. ONLINE
+
+3. EXIT
+  """,
+  M_GAME_OVER:  """
+        GAME OVER
+Would you like to continue?
+
+   RESET             NO
+  [ENTER]         [ESCAPE]
+  """,
+  M_CONNECTING: """
+  MESSAGE
+  Connecting.
+  Checking if server is already exists.
+  """,
+  M_CLENT_AWAIT: """
+  WARNING
+  No active server found.
+  You are hosting the game now.
+  Waiting for client to connect.
+
+  ABORT
+  [ESCAPE]
+  """,
+  M_CONNECTION_ERROR: """
+                           ERROR
+                  Connection error occured.
+  You can either go back to menu or continue playing offline.
+
+                  MENU           PROCEED
+                [ESCAPE]         [ENTER]
+  """,
+}
+
 SCENE_IMAGES= [
   join(DIR_ASSETS, 'scene', 'background_0.png'),
   join(DIR_ASSETS, 'scene', 'background_1.png'),

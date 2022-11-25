@@ -1,46 +1,53 @@
 import socket as sck
 from socket import socket
+from typing import Callable
 from ..defaults import HOST, PORT
 from threading import Thread
+from .c_connactable import Connectable
 
-class SocketServer(Thread):
-  def __init__(self) -> None:
-      self.is_up = False
-      self.data = None
-      self.error = None
-      self.socket: socket | None
-      super().__init__(target = self.start_t, daemon = True)
+class SocketServer(Connectable):
+  def __init__(self, handler: Callable = None) -> None:
+      super().__init__(handler)
+      self.reset()
 
-  def start_t(self) -> None:
+  def main(self) -> None:
     if self.is_up: return
     try:
       with socket(sck.AF_INET, sck.SOCK_STREAM) as s:
-        self.socket = s
+        s.setsockopt(sck.SOL_SOCKET, sck.SO_REUSEADDR, 1)
         s.bind((HOST, PORT))
         s.listen(1)
+        self.socket = s
         conn, addr = s.accept()
+        conn.setblocking(0)
+        self.socket = s
         self.is_up = True
         with conn:
+          self.connected = True
           print('Connection established: ', addr)
           while True:
             if not self.is_up:
               break
-            data = conn.recv(1024)
-            if data:
-              print('###', data.decode())
-              conn.sendall(data)
-            else:
-              break
+
+            try:
+              data = conn.recv(1024)
+              if data and self.handler:
+                self.handler(data.decode())
+            except BlockingIOError:
+              pass
+
+            if len(self.data):
+              response = self.data[0]
+              self.data = self.data[1:]
+              conn.sendall(response.encode())
     except Exception as e:
-      print(e)
+      print('Server error: ', e, e.__class__.__name__)
       self.error = e
-    finally:
-      self.stop()
+      return      
 
-
-  def stop(self) -> None:
-    if self.socket: self.socket.close()
-    self.socket = None
-    self.error = None
-    self.is_up = False
-    self.data = None
+  def reset(self) -> None:
+    # self.socket.shutdown(sck.SHUT_RDWR)
+    if self.socket:
+      self.socket.close()
+    super().reset()
+        

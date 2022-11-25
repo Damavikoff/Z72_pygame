@@ -27,7 +27,7 @@ class Character(Sprite):
     self.init_pos = (0, 0) if not position else position
     self.position = [*self.init_pos]
     self.ground = 0
-    self.show_hitboxes = True
+    self.show_hitboxes = False
     self.controls = {} if controls is None else controls
     self.move_speed = 390
     self.jump_speed = 0
@@ -227,12 +227,21 @@ class Character(Sprite):
     if not self.is_attacking or not self.active_sprite.hitbox_a: return
     h_a = self.hitboxes[0]
     for c in chars:
+      if not c.is_alive: return
       h_b = c.hitboxes[1]
       if (h_a.colliderect(h_b) and not self.active_sprite.detected) and c.is_alive:
         c.health_bar.remove_points(self.damage)
         self.active_sprite.detected = True
         if not c.is_alive:
-          c.action = DEATH
+          c.set_action_sprite(DEATH)
+
+  def reset(self) -> None:
+    self.position = [*self.init_pos]
+    self.jump_speed = 0
+    self.ground = 0
+    self.action_queue = []
+    self.action = None
+    self.health_bar.reset()
 
 #######################################################################################
 
@@ -245,7 +254,7 @@ class CharWarrior(Character):
       ATTACK_1: SpriteSheet(WARRIOR_1[ATTACK_1][0], self.size, WARRIOR_1[ATTACK_1][1], WARRIOR_1[ATTACK_1][2], scale, 10),
       ATTACK_2: SpriteSheet(WARRIOR_1[ATTACK_2][0], self.size, WARRIOR_1[ATTACK_2][1], WARRIOR_1[ATTACK_2][2], scale, 10),
       ATTACK_3: SpriteSheet(WARRIOR_1[ATTACK_3][0], self.size, WARRIOR_1[ATTACK_3][1], WARRIOR_1[ATTACK_3][2], scale, 10),
-      DEATH: SpriteSheet(WARRIOR_1[DEATH][0], self.size, WARRIOR_1[DEATH][1], None, scale, 11),
+      DEATH: SpriteSheet(WARRIOR_1[DEATH][0], self.size, WARRIOR_1[DEATH][1], None, scale, 9),
       FALL: SpriteSheet(WARRIOR_1[FALL][0], self.size, WARRIOR_1[FALL][1], None, scale, 11, True),
       GET_HIT: SpriteSheet(WARRIOR_1[GET_HIT][0], self.size, WARRIOR_1[GET_HIT][1], None, scale, 11),
       IDLE: SpriteSheet(WARRIOR_1[IDLE][0], self.size, WARRIOR_1[IDLE][1], None, scale, 11, True),
@@ -261,12 +270,12 @@ class CharLord(Character):
   def __init__(self, scale = 1, controls: dict = None, position: tuple[float] = None) -> None:
     super().__init__(None, scale, controls, position)
     self.size = (162, 162)
-    self.damage = 30
+    self.damage = 35
     self.sprites = {
       ATTACK_1: SpriteSheet(WARRIOR_2[ATTACK_1][0], self.size, WARRIOR_2[ATTACK_1][1], WARRIOR_2[ATTACK_1][2], scale, 10),
       ATTACK_2: SpriteSheet(WARRIOR_2[ATTACK_2][0], self.size, WARRIOR_2[ATTACK_2][1], WARRIOR_2[ATTACK_2][2], scale, 10),
       ATTACK_3: SpriteSheet(WARRIOR_2[ATTACK_3][0], self.size, WARRIOR_2[ATTACK_3][1], WARRIOR_2[ATTACK_3][2], scale, 10),
-      DEATH: SpriteSheet(WARRIOR_2[DEATH][0], self.size, WARRIOR_2[DEATH][1], None, scale, 11),
+      DEATH: SpriteSheet(WARRIOR_2[DEATH][0], self.size, WARRIOR_2[DEATH][1], None, scale, 9),
       FALL: SpriteSheet(WARRIOR_2[FALL][0], self.size, WARRIOR_2[FALL][1], None, scale, 11, True),
       GET_HIT: SpriteSheet(WARRIOR_2[GET_HIT][0], self.size, WARRIOR_2[GET_HIT][1], None, scale, 11),
       IDLE: SpriteSheet(WARRIOR_2[IDLE][0], self.size, WARRIOR_2[IDLE][1], None, scale, 11, True),

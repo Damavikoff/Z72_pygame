@@ -1,7 +1,7 @@
 import pygame
 from pygame import Surface
 from pygame.locals import QUIT, KEYDOWN, KEYUP, MOUSEMOTION, MOUSEBUTTONDOWN, MOUSEBUTTONUP
-from src.defaults import FPS, DEF_WIN_H, DEF_WIN_W, DEF_WIN_SCALE, DIR_ASSETS
+from src.defaults import FPS, DEF_WIN_H, DEF_WIN_W, DEF_WIN_SCALE, DIR_ASSETS, ICON
 from src.classes.c_game import Game
 import os
 
@@ -25,13 +25,12 @@ class Application:
     return pygame.display.set_mode((width, height))
 
   def init_app(self) -> None:
-    pygame.display.set_caption('unknown')
-
-  def handle_keydown(self, key: int) -> None:
-    self.game.handle_keydown(key)
+    icon = pygame.image.load(ICON)
+    pygame.display.set_icon(icon)
+    pygame.display.set_caption('Plan B')
   
-  def handle_keyup(self, key: int) -> None:
-    self.game.handle_keyup(key)
+  def handle_control(self, key: int, is_keyup = False) -> None:
+    self.game.handle_control(key, is_keyup)
 
   def start(self) -> None:
     self.init_app()
@@ -41,9 +40,9 @@ class Application:
           if event.type == QUIT:
               return
           if event.type == KEYDOWN:
-            self.handle_keydown(event.key)
+            self.handle_control(event.key)
           if event.type == KEYUP:
-            self.handle_keyup(event.key)
+            self.handle_control(event.key, True)
 
       self.game.update()
       self.game.draw(self.screen)

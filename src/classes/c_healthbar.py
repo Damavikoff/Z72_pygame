@@ -16,8 +16,13 @@ class HealthBar(Sprite):
     t, r, b, l = self.paddings
     self.image = Surface((w + r + l, h + t + b), pygame.SRCALPHA, 32).convert_alpha()
     self.rect = self.image.get_rect()
-    self.bar_speed = 600
+    self.bar_speed = 300
     self.side = side
+    self.render()
+
+  def reset(self) -> None:
+    self.act_val = self.max_val
+    self.cur_val = self.act_val
     self.render()
 
   def remove_points(self, amount: float) -> None:

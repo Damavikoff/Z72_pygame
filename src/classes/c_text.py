@@ -2,6 +2,7 @@ from cgitb import text
 import pygame.freetype
 from pygame.surface import Surface
 import pygame.font
+from ..defaults import ALIGN_LEFT, ALIGN_CENTER, ALIGN_RIGHT
 
 DEF_FONT = pygame.font.get_default_font()
 
@@ -38,9 +39,9 @@ class Text(Surface):
     h_i = 0
     for i, v in enumerate(surfaces):
       rect = v.get_rect()
-      if self.alignment == 0:
+      if self.alignment == ALIGN_LEFT:
         rect.left = 0
-      elif self.alignment == 1:
+      elif self.alignment == ALIGN_CENTER:
         rect.center = surf.get_rect().center
       else:
         rect.right = surf.get_rect().right
