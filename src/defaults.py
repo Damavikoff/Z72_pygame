@@ -80,9 +80,9 @@ Would you like to continue?
   WARNING
   No active server found.
   You are hosting the game now.
-  Waiting for client to connect.
+  Waiting a for client to connect.
 
-  ABORT
+  CANCEL
   [ESCAPE]
   """,
   M_CONNECTION_ERROR: """
