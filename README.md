@@ -1,5 +1,5 @@
 # Z72_pygame
-plan B
+Z72 / Z72_pygame / plan B
 
 ## CHAR_LEFT
 - JUMP   - W
